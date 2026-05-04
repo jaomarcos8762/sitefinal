@@ -77,7 +77,7 @@ async function createPixPayment({ items, customer = {}, delivery = {} }) {
   const totalInCents = Math.round(productTotal * 100);
 
   if (!normalizedItems.length || totalInCents <= 0) {
-    const error = new Error('Dados invalidos para gerar PIX.');
+    const error = new Error('Dados inválidos para gerar PIX.');
     error.statusCode = 400;
     throw error;
   }
@@ -155,7 +155,7 @@ async function createPixPayment({ items, customer = {}, delivery = {} }) {
     null;
 
   if (!pixCode) {
-    const error = new Error('A API respondeu sem codigo PIX.');
+    const error = new Error('A API respondeu sem código PIX.');
     error.statusCode = 502;
     throw error;
   }
@@ -192,7 +192,7 @@ app.post('/api/payments/checkout', async (req, res) => {
     const { items, customer, delivery, idempotencyKey } = req.body;
 
     if (!items || !customer) {
-      return res.status(400).json({ error: 'Dados invalidos' });
+      return res.status(400).json({ error: 'Dados inválidos' });
     }
 
     pruneCheckoutCache();
