@@ -75,7 +75,6 @@
     .screen.is-entering .progress-card,
     .screen.is-entering .mission-card,
     .screen.is-entering .data-card,
-    .screen.is-entering .pix-form,
     .screen.is-entering .security-block,
     .screen.is-entering .process-card,
     .screen.is-entering .balance-card,
@@ -84,9 +83,16 @@
     }
 
     .screen.is-entering .task-card,
-    .screen.is-entering .pix-form,
     .screen.is-entering .security-block {
       animation-delay: 0.06s;
+    }
+
+    .screen.is-entering .modal-card {
+      animation: modalSheetIn 0.5s cubic-bezier(0.18, 0.9, 0.24, 1) both;
+    }
+
+    .screen.is-exiting .modal-card {
+      animation: modalSheetOut 0.22s ease both;
     }
 
     .screen.is-entering .progress-card,
@@ -142,6 +148,25 @@
       to {
         opacity: 1;
         transform: translateY(0);
+      }
+    }
+
+    @keyframes modalSheetIn {
+      from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(42px) scale(0.985);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+      }
+    }
+
+    @keyframes modalSheetOut {
+      to {
+        opacity: 0;
+        transform: translateX(-50%) translateY(28px) scale(0.99);
       }
     }
 
@@ -623,7 +648,7 @@
     select {
       min-height: 42px;
       padding: 0 12px;
-      font-size: 14px;
+      font-size: 16px;
     }
 
     .field:focus,
@@ -932,7 +957,7 @@
       border: 1px solid var(--line);
       border-radius: 6px;
       color: #393c46;
-      font-size: 12px;
+      font-size: 16px;
       line-height: 1.4;
     }
 
@@ -1019,7 +1044,7 @@
 
       <section class="balance-strip" aria-label="Resumo de saldo">
         <div>
-          <span>Seu saldo <span aria-hidden="true">P</span></span>
+          <span>Seu saldo</span>
           <strong class="js-balance-amount">R$ 4.834,72</strong>
         </div>
         <button class="withdraw" id="open-withdraw" type="button">Sacar</button>
