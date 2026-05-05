@@ -1505,6 +1505,25 @@
       font-weight: 700;
     }
 
+    .fee-footer-note {
+      display: grid;
+      gap: 8px;
+      justify-items: center;
+      margin: 26px 0 8px;
+      text-align: center;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .fee-footer-note span {
+      color: #b6b9c1;
+    }
+
+    .fee-footer-note a {
+      color: #e8547a;
+      text-decoration: none;
+    }
+
     .trust-logos {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -1567,8 +1586,8 @@
     .withdraw-method-sheet {
       z-index: 30;
       display: none;
-      min-height: 230px;
-      padding: 0 14px 42px;
+      min-height: 280px;
+      padding: 0 14px max(78px, env(safe-area-inset-bottom));
     }
 
     .withdraw-method-sheet.visible {
@@ -2107,6 +2126,11 @@
         <span class="trust-logo"><img alt=""></span>
       </footer>
 
+      <footer class="fee-footer-note" aria-label="Segurança e ajuda">
+        <span>Processo 100% seguro</span>
+        <a href="#" aria-label="Precisa de ajuda?">Precisa de ajuda?</a>
+      </footer>
+
     </section>
   </main>
 
@@ -2615,6 +2639,14 @@
       return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=10&data=${encodeURIComponent(pixCode)}`;
     }
 
+    function getPixCodeFromResponse(data) {
+      return data.pix_code || data.pixCode || data.qr_code || data.qrCode || data.emv || data.brcode || "";
+    }
+
+    function getPixQrBase64FromResponse(data) {
+      return data.pix_base64 || data.pixQrBase64 || data.qr_base64 || data.qrCodeBase64 || data.qrcode || "";
+    }
+
     function createCheckoutKey() {
       if (window.crypto?.randomUUID) {
         return window.crypto.randomUUID();
@@ -2686,19 +2718,25 @@
           throw new Error(data.error || "Nao foi possivel gerar o Pix.");
         }
 
-        if (!data.pix_code) {
+        const generatedPixCode = getPixCodeFromResponse(data);
+
+        if (!generatedPixCode) {
           throw new Error("A API nao retornou o codigo Pix copia e cola.");
         }
 
-        pixCode.value = data.pix_code;
+        pixCode.value = generatedPixCode;
         hasGeneratedPix = true;
 
         const qrImage = getQrImageSource({
-          base64: data.pix_base64,
-          pixCode: data.pix_code,
+          base64: getPixQrBase64FromResponse(data),
+          pixCode: generatedPixCode,
         });
 
         if (qrImage) {
+          pixQrImage.onerror = () => {
+            pixQrWrap.classList.remove("visible");
+            setPixStatus("Pix gerado. Copie o codigo abaixo para pagar.", "success");
+          };
           pixQrImage.src = qrImage;
           pixQrWrap.classList.add("visible");
         }
