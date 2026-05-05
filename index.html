@@ -28,6 +28,7 @@
       background: #ffffff;
       color: var(--ink);
       font-family: Arial, Helvetica, sans-serif;
+      -webkit-text-size-adjust: 100%;
     }
 
     button,
@@ -1541,7 +1542,8 @@
       position: fixed;
       left: 50%;
       bottom: 0;
-      width: min(100%, 440px);
+      width: min(100vw, 440px);
+      max-width: 100vw;
       transform: translateX(-50%);
       border: 0;
       border-radius: 18px 18px 0 0;
@@ -1578,6 +1580,8 @@
       z-index: 30;
       display: none;
       gap: 0;
+      max-height: calc(100dvh - 20px);
+      overflow-y: auto;
       padding: 0 14px max(14px, env(safe-area-inset-bottom));
     }
 
@@ -1606,7 +1610,7 @@
       border-radius: 0;
       background: transparent;
       color: #2f323b;
-      font-size: 13px;
+      font-size: 16px;
       font-weight: 700;
       box-shadow: none;
     }
