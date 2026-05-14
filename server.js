@@ -349,6 +349,10 @@ app.get('/health', (req, res) => {
   res.json({ ok: true, uptime: Math.round(process.uptime()) });
 });
 
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, uptime: Math.round(process.uptime()) });
+});
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });
