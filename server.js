@@ -16,7 +16,12 @@ const host = process.env.HOST || '0.0.0.0';
 const paymentStatusStore = new Map();
 const checkoutCache = new Map();
 const checkoutCacheTtlMs = Number(process.env.CHECKOUT_CACHE_TTL_MS || 10 * 60 * 1000);
+const checkoutRateLimitStore = new Map();
+const checkoutRateLimitWindowMs = Number(process.env.CHECKOUT_RATE_LIMIT_WINDOW_MS || 10 * 60 * 1000);
+const checkoutRateLimitMax = Number(process.env.CHECKOUT_RATE_LIMIT_MAX || 3);
+const paymentTestMode = String(process.env.PAYMENT_TEST_MODE || '').toLowerCase();
 
+app.set('trust proxy', 1);
 app.use(cors());
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(__dirname, { index: false }));
@@ -69,7 +74,95 @@ function pruneCheckoutCache() {
   }
 }
 
+function pruneCheckoutRateLimit() {
+  const now = Date.now();
+
+  for (const [key, entry] of checkoutRateLimitStore) {
+    if (entry.resetAt <= now) {
+      checkoutRateLimitStore.delete(key);
+    }
+  }
+}
+
+function getClientIp(req) {
+  return req.ip || req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+}
+
+function assertCheckoutRateLimit(req) {
+  pruneCheckoutRateLimit();
+
+  const key = getClientIp(req);
+  const now = Date.now();
+  const entry = checkoutRateLimitStore.get(key) || {
+    count: 0,
+    resetAt: now + checkoutRateLimitWindowMs,
+  };
+
+  if (entry.count >= checkoutRateLimitMax) {
+    const error = new Error('Muitas tentativas de gerar Pix. Aguarde alguns minutos e tente novamente.');
+    error.statusCode = 429;
+    throw error;
+  }
+
+  entry.count += 1;
+  checkoutRateLimitStore.set(key, entry);
+}
+
+function hasValidCheckoutCustomer(customer = {}) {
+  const name = String(customer.name || '').trim();
+  const document = String(customer.document || customer.cpf || '').replace(/\D/g, '');
+  const email = String(customer.email || '').trim();
+  const phone = String(customer.phone_number || customer.phone || '').replace(/\D/g, '');
+
+  return (
+    name.length >= 3 &&
+    (document.length === 11 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || phone.length >= 10)
+  );
+}
+
+function createTestPixPayment({ items }) {
+  const normalizedItems = Array.isArray(items) ? items : [];
+  const productTotal = normalizedItems.reduce((sum, item) => {
+    return sum + normalizeItemPrice(item) * Number(item?.qty || item?.quantity || 1);
+  }, 0);
+  const totalInCents = Math.round(productTotal * 100);
+
+  if (!normalizedItems.length || totalInCents <= 0) {
+    const error = new Error('Dados invalidos para gerar PIX.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const transactionHash = `test-paid-${crypto.randomUUID()}`;
+  const pixCode = `PIX-TESTE-PAGO-${transactionHash}-R$${productTotal.toFixed(2)}`;
+  const payment = {
+    transactionHash,
+    status: 'paid',
+    amount: totalInCents,
+    paymentMethod: 'pix',
+    isPaid: true,
+    pixCode,
+    updatedAt: new Date().toISOString(),
+  };
+
+  paymentStatusStore.set(transactionHash, payment);
+
+  return {
+    transaction_hash: transactionHash,
+    status: 'paid',
+    pix_code: pixCode,
+    pix_base64: null,
+    charged_total: productTotal,
+    isPaid: true,
+    source: 'local-test',
+  };
+}
+
 async function createPixPayment({ items, customer = {}, delivery = {} }) {
+  if (paymentTestMode === 'paid') {
+    return createTestPixPayment({ items, customer, delivery });
+  }
+
   requirePaymentConfig();
 
   const normalizedItems = Array.isArray(items) ? items : [];
@@ -193,7 +286,7 @@ app.post('/api/payments/checkout', async (req, res) => {
   try {
     const { items, customer, delivery, idempotencyKey } = req.body;
 
-    if (!items || !customer) {
+    if (!items || !customer || !idempotencyKey || !hasValidCheckoutCustomer(customer)) {
       return res.status(400).json({ error: 'Dados inválidos' });
     }
 
@@ -206,6 +299,8 @@ app.post('/api/payments/checkout', async (req, res) => {
       const payment = await cachedCheckout.promise;
       return res.json(payment);
     }
+
+    assertCheckoutRateLimit(req);
 
     const promise = createPixPayment({ items, customer, delivery });
     checkoutCache.set(cacheKey, {
